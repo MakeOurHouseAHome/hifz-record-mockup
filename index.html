@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hifz Record</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Amiri:wght@400;700&display=swap">
+<style>
+/* Layout: a single phone-shaped app frame, centred on desktop, full-bleed on a phone. Role switcher sits above it. */
+:root{
+  --bg:#EEF2F0; --surface:#FFFFFF; --sunk:#F4F7F5; --line:#D9E2DE;
+  --ink:#14231F; --muted:#5C6E68; --brand:#0E5A4F; --brand-ink:#FFFFFF; --gold:#B7862B;
+  --good:#2E7D4F; --warn:#B7862B; --bad:#B4483A; --fresh:#2E7D4F; --mid:#8DB9A0; --stale:#E2B85C; --old:#D7826F; --empty:#E3E9E6;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"DM Sans", "Segoe UI", system-ui, sans-serif;
+  --arabic:"Amiri", "Traditional Arabic", serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1513; --surface:#14201D; --sunk:#101A18; --line:#26352F;
+  --ink:#E6EEEB; --muted:#93A69F; --brand:#3FA08F; --brand-ink:#06110F; --gold:#D9A74A;
+  --good:#5BBF85; --warn:#D9A74A; --bad:#E07A6A; --fresh:#4FAF78; --mid:#3E7560; --stale:#9C7A35; --old:#9B4E40; --empty:#1D2A26; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1513; --surface:#14201D; --sunk:#101A18; --line:#26352F;
+  --ink:#E6EEEB; --muted:#93A69F; --brand:#3FA08F; --brand-ink:#06110F; --gold:#D9A74A;
+  --good:#5BBF85; --warn:#D9A74A; --bad:#E07A6A; --fresh:#4FAF78; --mid:#3E7560; --stale:#9C7A35; --old:#9B4E40; --empty:#1D2A26; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);padding-inline:16px;padding-block:20px 40px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.top{max-width:420px;margin:0 auto 14px;display:flex;flex-direction:column;gap:10px}
+.top h1{font-size:22px}
+.top p{margin:0;color:var(--muted);font-size:13px}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.roles button{border:0;background:none;padding:8px 6px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted)}
+.roles button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink)}
+
+.phone{max-width:420px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:26px;overflow:hidden;display:flex;flex-direction:column;min-height:720px;box-shadow:0 20px 50px -30px rgba(10,40,35,.45)}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 10px;border-bottom:1px solid var(--line)}
+.bar .who{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.bar h2{font-size:19px}
+.date{font-size:12px;color:var(--muted);text-align:right}
+.screen{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);background:var(--sunk)}
+.tabs button{border:0;background:none;padding:12px 4px 14px;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+.tabs button[aria-current="page"]{color:var(--brand)}
+.tabs svg{width:20px;height:20px}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;line-height:18px;text-align:center}
+
+.card{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.card.sunk{background:var(--sunk)}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.part{display:flex;align-items:baseline;gap:8px}
+.part .tag{font-family:var(--display);font-weight:700;color:var(--brand);font-size:15px;width:18px}
+.part h3{font-size:16px}
+.range{font-size:14px;color:var(--muted)}
+.range b{color:var(--ink);font-weight:600}
+.ar{font-family:var(--arabic);font-size:18px;color:var(--brand)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.chip.warnsel[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stepper button{border:0;background:var(--sunk);width:32px;height:32px;font-size:18px}
+.stepper span{min-width:30px;text-align:center;font-weight:600}
+.stepl{font-size:12px;color:var(--muted);margin-right:4px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
+.check input{width:20px;height:20px;accent-color:var(--brand);margin:1px 0 0;flex:none}
+.check label{flex:1;min-width:0}
+.check small{display:block;color:var(--muted)}
+.check.done{border-color:var(--good)}
+textarea,input[type=text],select{width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:10px;padding:10px;color:var(--ink);font:inherit}
+textarea{resize:vertical;min-height:60px}
+.btn{border:0;border-radius:12px;padding:12px 16px;background:var(--brand);color:var(--brand-ink);font-weight:600;width:100%}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--sunk);border:1px solid var(--line)}
+.pill.good{color:var(--good);border-color:var(--good)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.student{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--sunk);width:100%;text-align:left}
+.student[aria-pressed="true"]{border-color:var(--brand)}
+.student small{color:var(--muted);display:block}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.note{font-size:12px;color:var(--muted);border-left:3px solid var(--gold);padding-left:10px}
+
+.ringwrap{display:flex;gap:16px;align-items:center}
+.ringwrap svg{flex:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;flex:1}
+.stats b{font-family:var(--display);font-size:20px;display:block}
+.stats span{font-size:12px;color:var(--muted)}
+.map{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.juz{aspect-ratio:1;max-width:100%;border-radius:8px;background:var(--empty);position:relative;display:flex;align-items:flex-end;justify-content:flex-start;padding:4px 5px;font-size:11px;font-weight:600;overflow:hidden}
+.juz .fill{position:absolute;inset:auto 0 0 0;background:var(--brand);opacity:.85}
+.juz span{position:relative}
+.juz.fresh{background:var(--fresh);color:#fff}.juz.mid{background:var(--mid)}.juz.stale{background:var(--stale)}.juz.old{background:var(--old);color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.cycle{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.cycle .c{padding:4px 9px;border-radius:8px;background:var(--sunk);border:1px solid var(--line);font-weight:600}
+.cycle .c.now{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.cycle .c.next{border-style:dashed;color:var(--muted)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}
+.week div{padding:6px 0;border-radius:8px;background:var(--sunk);border:1px solid var(--line)}
+.week .ok{background:var(--good);color:#fff;border-color:var(--good)}
+.week .heard{box-shadow:inset 0 0 0 2px var(--gold)}
+.week .today{border-color:var(--brand);border-width:2px}
+
+.thread{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;padding:9px 12px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
+.msg.me{align-self:flex-end;background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.msg .from{font-size:11px;font-weight:600;opacity:.75;margin-bottom:2px}
+.msg .ref{font-size:11px;margin-top:4px;opacity:.8}
+.sys{align-self:center;font-size:12px;color:var(--muted);background:none;border:1px dashed var(--line);border-radius:10px;padding:6px 10px;text-align:center}
+.composer{display:flex;gap:8px}
+.composer input{flex:1;min-width:0}
+.composer button{width:auto;padding:10px 14px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;max-width:calc(100% - 32px)}
+@media (max-width:460px){body{padding-inline:0;padding-block:0 30px}.top{padding:14px 16px 0}.phone{border-radius:0;border-inline:0;min-height:0}}
+@media (prefers-reduced-motion:no-preference){.card,.msg{animation:in .25s ease-out both}@keyframes in{from{transform:translateY(4px)}}}
+</style>
+
+<div class="top">
+  <h1>Hifz Record <span class="muted small" style="font-family:var(--body);font-weight:500">· clickable mock-up</span></h1>
+  <p>Example data for Yusuf. Switch between the three people who use the app; changes in one view show up in the others.</p>
+  <div class="roles" role="group" aria-label="View as">
+    <button id="r-teacher" data-role="teacher">Teacher</button>
+    <button id="r-parent" data-role="parent">Parent</button>
+    <button id="r-student" data-role="student">Yusuf</button>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="bar">
+    <div><div class="who" id="who"></div><h2 id="title"></h2></div>
+    <div class="date num">Wed 14 Oct<br><span id="sub"></span></div>
+  </div>
+  <div class="screen" id="screen"></div>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- Madani 15-line mushaf (604 pages) ---------- */
+const LPP = 15;
+const juzStart = k => k === 1 ? 1 : 2 + 20 * (k - 1);
+const juzEnd = k => k === 30 ? 604 : juzStart(k + 1) - 1;
+const abs = (p, l) => (p - 1) * LPP + l;               // absolute line number
+const pos = a => ({ p: Math.floor((a - 1) / LPP) + 1, l: ((a - 1) % LPP) + 1 });
+const fmt = (a, b) => { const x = pos(a), y = pos(b); return x.p === y.p ? `p.${x.p} L${x.l}–${y.l}` : `p.${x.p} L${x.l} – p.${y.p} L${y.l}`; };
+const KAHF = { name: "Surah al-Kahf", ar: "الكهف", a: abs(293, 1), b: abs(304, 15) };
+function unit(u) { return u === "kahf" ? { name: KAHF.name, a: KAHF.a, b: KAHF.b } : { name: `Juz ${u}`, a: abs(juzStart(u), 1), b: abs(juzEnd(u), LPP) }; }
+function fifth(u, f) { const x = unit(u), n = x.b - x.a + 1; const a = x.a + Math.round(n * (f - 1) / 5), b = x.a + Math.round(n * f / 5) - 1; return { ...x, f, range: fmt(a, b) }; }
+
+/* ---------- Example state ---------- */
+const S = {
+  role: "teacher", tab: "today",
+  memorised: [30, 29, 28, 27, "kahf"],            // curriculum order; Juz 1 joins when complete
+  madrasa: { unit: 28, f: 3 },                     // Part A this week: Juz 28, Wed = fifth 3
+  home: { unit: 30, f: 3, minutes: 30, days: 7 },  // separate home cycle
+  sabaq: [
+    { day: "Mon 12", a: abs(6, 1), b: abs(6, 10), surah: "al-Baqarah" },
+    { day: "Tue 13", a: abs(6, 11), b: abs(7, 5), surah: "al-Baqarah" },
+  ],
+  today: { a: abs(7, 6), n: 10, surah: "al-Baqarah", ar: "البقرة" },
+  join: { "Mon 12": true, "Tue 13": true },
+  rec: { aGrade: "Good", aMist: 2, aStuck: 1, repeat: false, bGrade: "Good", bMist: 0, bStuck: 0, note: "" },
+  saved: false, ack: false,
+  homeTicks: { new: false, join: false, rev: false }, heard: false,
+  week: ["ok heard", "ok", "ok heard", "ok", "ok", "ok heard", "today"], // Thu..Wed
+  lastRev: { 30: 1, 29: 9, 28: 0, 27: 19, kahf: 12 },  // days since revised
+  thread: [
+    { from: "Teacher", role: "teacher", text: "Yusuf has started al-Baqarah this week, māshā'Allāh. 10 lines a day for now; we'll raise it once his joining is solid.", ref: "Mon 12 Oct · Sabaq" },
+    { from: "Dad", role: "parent", text: "JazakAllahu khayran. He did his 30 minutes at home yesterday. He found page 6 lines 3–4 hard.", ref: "Home · Tue 13 Oct" },
+    { from: "Yusuf", role: "student", text: "I keep mixing up the endings of ayah 20 and 21.", ref: null },
+    { from: "Teacher", role: "teacher", text: "Good that you noticed. Read both ayāt to me first thing tomorrow before your sabaq.", ref: null },
+  ],
+  unread: { teacher: 0, parent: 1, student: 0 },
+};
+const todayRange = () => fmt(S.today.a, S.today.a + S.today.n - 1);
+const ROLE = { teacher: ["Teacher", "Today's class"], parent: ["Parent", "Yusuf's day"], student: ["Yusuf", "Tonight"] };
+
+/* ---------- Rendering ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2400); }
+
+const ICON = {
+  today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+  progress: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
+  messages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5h14v10H9l-4 4z"/></svg>',
+};
+
+function render() {
+  document.querySelectorAll(".roles button").forEach(b => b.setAttribute("aria-pressed", b.dataset.role === S.role));
+  const [who, title] = ROLE[S.role];
+  $("#who").textContent = who;
+  $("#title").textContent = S.tab === "today" ? title : S.tab === "progress" ? "Progress" : "Messages";
+  $("#sub").textContent = S.role === "teacher" ? "end of class" : "";
+  const n = S.unread[S.role];
+  $("#tabs").innerHTML = ["today", "progress", "messages"].map(t =>
+    `<button id="tab-${t}" data-tab="${t}" ${S.tab === t ? 'aria-current="page"' : ""}>${ICON[t]}<span>${t[0].toUpperCase() + t.slice(1)}${t === "messages" && n ? ` <span class="badge">${n}</span>` : ""}</span></button>`).join("");
+  const v = S.tab === "progress" ? progress() : S.tab === "messages" ? messages() : ({ teacher, parent, student })[S.role]();
+  $("#screen").innerHTML = v;
+  if (S.tab === "messages") { const s = $("#screen"); s.scrollTop = s.scrollHeight; }
+}
+
+const grades = (key, id) => `<div class="chips" role="group" aria-label="Grade">${["Excellent", "Good", "Needs repeat"].map(g =>
+  `<button class="chip ${g === "Needs repeat" ? "warnsel" : ""}" id="${id}-${g.replace(" ", "")}" data-grade="${key}" data-v="${g}" aria-pressed="${S.rec[key] === g}">${g}</button>`).join("")}</div>`;
+const stepper = (key, label) => `<span class="row" style="gap:4px"><span class="stepl">${label}</span><span class="stepper"><button data-step="${key}" data-d="-1" aria-label="Fewer ${label}">−</button><span class="num">${S.rec[key]}</span><button data-step="${key}" data-d="1" aria-label="More ${label}">+</button></span></span>`;
+
+function teacher() {
+  const A = fifth(S.madrasa.unit, S.madrasa.f);
+  return `
+  <div class="row" style="gap:6px">
+    <button class="student" aria-pressed="true" id="stu-yusuf" style="flex:1"><span><b>Yusuf</b><small>Juz 30–27 + Kahf · sabaq in Juz 1</small></span>${S.saved ? '<span class="pill good"><span class="dot"></span>Saved</span>' : '<span class="pill warn"><span class="dot"></span>To record</span>'}</button>
+  </div>
+  <p class="note">Other students in the class appear in this list once the madrasa is set up. This mock-up shows Yusuf only.</p>
+
+  <div class="card">
+    <div class="part"><span class="tag">A</span><h3>Manzil</h3><span class="eyebrow" style="margin-left:auto">Weekly cycle</span></div>
+    <div class="range"><b>${A.name}</b> · fifth ${A.f} of 5 · <span class="num">${A.range}</span></div>
+    ${grades("aGrade", "ag")}
+    <div class="row">${stepper("aMist", "mistakes")}${stepper("aStuck", "stuck")}</div>
+    <label class="check ${S.rec.repeat ? "done" : ""}"><input type="checkbox" id="repeat" ${S.rec.repeat ? "checked" : ""}><span><b>Repeat this fifth tomorrow</b><small>The rest of the cycle moves back one day.</small></span></label>
+  </div>
+
+  <div class="card">
+    <div class="part"><span class="tag">B</span><h3>Sabaq</h3><span class="ar" style="margin-left:auto">${S.today.ar}</span></div>
+    <div class="spread"><div class="range">New lines: <b class="num">${todayRange()}</b></div>
+      <span class="stepper"><button data-lines="-1" aria-label="Fewer lines">−</button><span class="num">${S.today.n}</span><button data-lines="1" aria-label="More lines">+</button></span></div>
+    <div class="eyebrow">Joined with earlier lines (same surah)</div>
+    ${S.sabaq.map(s => `<label class="check ${S.join[s.day] ? "done" : ""}"><input type="checkbox" data-join="${s.day}" id="join-${s.day.replace(" ", "")}" ${S.join[s.day] ? "checked" : ""}><span>${s.day} · <span class="num">${fmt(s.a, s.b)}</span><small>${s.surah}</small></span></label>`).join("")}
+    ${grades("bGrade", "bg")}
+    <div class="row">${stepper("bMist", "mistakes")}${stepper("bStuck", "stuck")}</div>
+  </div>
+
+  <div class="card sunk">
+    <label class="eyebrow" for="note">Note for Yusuf and his parents</label>
+    <textarea id="note" placeholder="e.g. Strong today. Practise the joining of ayah 20 and 21.">${esc(S.rec.note)}</textarea>
+  </div>
+  <button class="btn" id="save">${S.saved ? "Update and notify again" : "Save and notify parents"}</button>`;
+}
+
+function reportCard() {
+  if (!S.saved) return `<div class="card sunk"><div class="eyebrow">Madrasa today</div><p class="muted" style="margin:0">Waiting for the teacher to record today's lesson. You'll get a notification when it's in.</p></div>`;
+  const A = fifth(S.madrasa.unit, S.madrasa.f), r = S.rec;
+  const joined = S.sabaq.filter(s => S.join[s.day]).map(s => s.day.split(" ")[0]).join(" + ") || "none";
+  return `<div class="card">
+    <div class="spread"><div class="eyebrow">Madrasa today</div><span class="pill good"><span class="dot"></span>Recorded</span></div>
+    <div><b>A · ${A.name}, fifth ${A.f}</b> <span class="muted small num">${A.range}</span><br><span class="small">${r.aGrade} · ${r.aMist} mistakes · ${r.aStuck} stuck${r.repeat ? " · <b>repeat tomorrow</b>" : ""}</span></div>
+    <div><b>B · ${S.today.n} new lines</b> <span class="muted small num">${todayRange()}</span><br><span class="small">${r.bGrade} · ${r.bMist} mistakes · joined ${joined}</span></div>
+    ${r.note ? `<div class="note" style="color:var(--ink)">“${esc(r.note)}”</div>` : ""}
+    ${S.role === "parent" ? (S.ack ? `<span class="pill good"><span class="dot"></span>You acknowledged this</span>` : `<button class="btn" id="ack">Acknowledge</button>`) : ""}
+  </div>`;
+}
+
+function homeList(editable) {
+  const H = fifth(S.home.unit, S.home.f), y = S.sabaq[S.sabaq.length - 1];
+  const items = [
+    ["new", "Practise today's new lines until fluent", `${todayRange()} · ${S.today.surah}`],
+    ["join", "Join them to yesterday's lines", `${fmt(y.a, y.b)}`],
+    ["rev", `Home revision: ${H.name}, fifth ${H.f}`, `${H.range} · different juz from the madrasa this week`],
+  ];
+  return items.map(([k, t, s]) => `<label class="check ${S.homeTicks[k] ? "done" : ""}"><input type="checkbox" id="home-${k}" data-home="${k}" ${S.homeTicks[k] ? "checked" : ""} ${editable ? "" : "disabled"}><span><b>${t}</b><small class="num">${s}</small></span></label>`).join("");
+}
+const allHome = () => Object.values(S.homeTicks).every(Boolean);
+const weekStrip = () => `<div class="week num">${["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"].map((d, i) => {
+  let c = S.week[i]; if (i === 6) c = (allHome() ? "ok " : "") + (S.heard ? "heard " : "") + "today";
+  return `<div class="${c}">${d}</div>`; }).join("")}</div>
+  <div class="legend"><span><i style="background:var(--good)"></i>Home revision done</span><span><i style="box-shadow:inset 0 0 0 2px var(--gold)"></i>A parent listened</span></div>`;
+
+function parent() {
+  return `${reportCard()}
+  <div class="card">
+    <div class="spread"><div class="eyebrow">Tonight at home</div><span class="pill">${S.home.minutes} min · ${S.home.days} days a week</span></div>
+    ${homeList(false)}
+    ${allHome() ? (S.heard ? `<span class="pill good"><span class="dot"></span>You listened to Yusuf tonight</span>` : `<button class="btn" id="heard">I listened to him recite</button>`) : `<p class="muted small" style="margin:0">Yusuf ticks these off. You can confirm once he's finished.</p>`}
+  </div>
+  <div class="card sunk"><div class="eyebrow">Last 7 days at home</div>${weekStrip()}</div>
+  <div class="card sunk">
+    <div class="eyebrow">Home plan (set by parents)</div>
+    <div class="row"><label class="small" for="mins" style="flex:1">Minutes a day</label><select id="mins" style="width:auto">${[15, 20, 30, 45, 60].map(m => `<option ${m === S.home.minutes ? "selected" : ""}>${m}</option>`).join("")}</select></div>
+    <div class="row"><label class="small" for="days" style="flex:1">Days a week</label><select id="days" style="width:auto">${[5, 6, 7].map(m => `<option ${m === S.home.days ? "selected" : ""}>${m}</option>`).join("")}</select></div>
+    <p class="muted small" style="margin:0">The home cycle covers one fifth a day and always picks a different juz from the one the madrasa is revising that week.</p>
+  </div>`;
+}
+
+function student() {
+  const done = Object.values(S.homeTicks).filter(Boolean).length;
+  return `<div class="card">
+    <div class="spread"><div><div class="eyebrow">Tonight</div><h3 style="font-size:20px">${done} of 3 done</h3></div><span class="pill">≈ ${S.home.minutes} min</span></div>
+    ${homeList(true)}
+    ${allHome() ? `<p class="small" style="margin:0"><b>All done.</b> Ask Mum or Dad to listen to you recite.</p>` : ""}
+  </div>
+  ${reportCard()}
+  <div class="card sunk"><div class="eyebrow">Your week</div>${weekStrip()}</div>`;
+}
+
+function progress() {
+  const memLines = S.memorised.reduce((t, u) => { const x = unit(u); return t + x.b - x.a + 1; }, 0);
+  const juz1Done = S.today.a - 1 + (S.saved ? S.today.n : 0);
+  const totalLines = 604 * LPP, done = memLines + juz1Done, pct = done / totalLines;
+  const perWeek = S.today.n * 5, weeks = Math.ceil((totalLines - done) / perWeek);
+  const finish = new Date(2026, 9, 14 + weeks * 7).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const R = 34, C = 2 * Math.PI * R;
+  const cls = d => d === undefined ? "" : d <= 7 ? "fresh" : d <= 14 ? "mid" : d <= 21 ? "stale" : "old";
+  const cells = Array.from({ length: 30 }, (_, i) => {
+    const k = i + 1;
+    if (S.lastRev[k] !== undefined) return `<div class="juz ${cls(S.lastRev[k])}" title="Juz ${k}: revised ${S.lastRev[k]} days ago"><span>${k}</span></div>`;
+    let f = 0, tip = `Juz ${k}: not started`;
+    if (k === 1) { f = juz1Done / (abs(juzEnd(1), 15)); tip = "Juz 1: in progress"; }
+    if (k === 15) { f = (abs(301, 15) - KAHF.a + 1) / 300; tip = "Juz 15: al-Kahf (first part)"; }
+    if (k === 16) { f = 3 * 15 / 300; tip = "Juz 16: al-Kahf (end)"; }
+    return `<div class="juz" title="${tip}">${f ? `<div class="fill" style="height:${Math.max(8, f * 100)}%;background:${k === 1 ? "var(--brand)" : "var(--mid)"}"></div>` : ""}<span>${k}</span></div>`;
+  }).join("");
+  const order = S.memorised.map(u => u === "kahf" ? "Kahf" : `Juz ${u}`);
+  return `<div class="card">
+    <div class="ringwrap">
+      <svg width="92" height="92" viewBox="0 0 92 92" aria-label="${(pct * 100).toFixed(0)} percent of the Quran"><circle cx="46" cy="46" r="${R}" fill="none" stroke="var(--empty)" stroke-width="9"/><circle cx="46" cy="46" r="${R}" fill="none" stroke="var(--brand)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C * pct} ${C}" transform="rotate(-90 46 46)"/><text x="46" y="51" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="17" fill="var(--ink)">${(pct * 30).toFixed(1)}</text></svg>
+      <div class="stats num"><div><b>${(pct * 30).toFixed(1)}</b><span>of 30 juz</span></div><div><b>${perWeek}</b><span>new lines a week</span></div><div><b>${S.memorised.length}</b><span>in the revision cycle</span></div><div><b>${finish}</b><span>projected finish at this pace</span></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Strength map · by juz</div>
+    <div class="map num">${cells}</div>
+    <div class="legend"><span><i style="background:var(--fresh)"></i>Revised this week</span><span><i style="background:var(--mid)"></i>1–2 weeks</span><span><i style="background:var(--stale)"></i>2–3 weeks</span><span><i style="background:var(--old)"></i>3+ weeks</span></div>
+    <p class="muted small" style="margin:0">Juz 27 hasn't been revised for ${S.lastRev[27]} days. It comes up again in the madrasa cycle next week.</p>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Madrasa revision cycle</div>
+    <div class="cycle">${order.map((o, i) => `<span class="c ${i === 2 ? "now" : ""}">${o}</span>`).join("→")}→<span class="c next">Juz 1 once complete</span></div>
+    <div class="eyebrow">Memorisation order (this centre)</div>
+    <div class="cycle">${["Juz 30", "29", "28", "27", "Kahf", "Baqarah → forwards"].map((o, i) => `<span class="c ${i === 5 ? "now" : ""}">${o}</span>`).join("→")}</div>
+  </div>`;
+}
+
+function messages() {
+  const me = { teacher: "Teacher", parent: "Dad", student: "Yusuf" }[S.role];
+  return `<p class="note">One shared thread: the teacher, both parents and Yusuf all see every message.</p>
+  <div class="thread">${S.thread.map(m => m.sys ? `<div class="sys">${esc(m.text)}</div>` :
+    `<div class="msg ${m.from === me ? "me" : ""}"><div class="from">${esc(m.from)}</div>${esc(m.text)}${m.ref ? `<div class="ref">↳ ${esc(m.ref)}</div>` : ""}</div>`).join("")}</div>
+  <form class="composer" id="composer"><input type="text" id="msg" placeholder="Message as ${me}…" autocomplete="off" aria-label="Message"><button class="btn" type="submit">Send</button></form>`;
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.role) { S.role = t.dataset.role; S.tab = "today"; return render(); }
+  if (t.dataset.tab) { S.tab = t.dataset.tab; if (S.tab === "messages") S.unread[S.role] = 0; return render(); }
+  if (t.dataset.grade) { S.rec[t.dataset.grade] = t.dataset.v; return render(); }
+  if (t.dataset.step) { S.rec[t.dataset.step] = Math.max(0, S.rec[t.dataset.step] + +t.dataset.d); return render(); }
+  if (t.dataset.lines) { S.today.n = Math.min(30, Math.max(1, S.today.n + +t.dataset.lines)); return render(); }
+  if (t.id === "save") {
+    S.rec.note = $("#note").value.trim(); S.saved = true; S.ack = false;
+    S.thread.push({ sys: true, text: `Teacher recorded Wed 14 Oct: Juz 28 fifth 3 (${S.rec.aGrade}), ${S.today.n} new lines (${S.rec.bGrade})` });
+    S.unread.parent++; S.unread.student++;
+    toast("Saved. Parents and Yusuf notified."); return render();
+  }
+  if (t.id === "ack") { S.ack = true; S.thread.push({ sys: true, text: "Dad acknowledged today's report" }); S.unread.teacher++; toast("Acknowledged"); return render(); }
+  if (t.id === "heard") { S.heard = true; S.thread.push({ sys: true, text: "Dad listened to Yusuf's home revision" }); S.unread.teacher++; toast("Logged"); return render(); }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.id === "repeat") S.rec.repeat = t.checked;
+  else if (t.dataset.join) S.join[t.dataset.join] = t.checked;
+  else if (t.dataset.home) { S.homeTicks[t.dataset.home] = t.checked; if (!allHome()) S.heard = false; }
+  else if (t.id === "mins") S.home.minutes = +t.value;
+  else if (t.id === "days") S.home.days = +t.value;
+  else return;
+  render();
+});
+document.addEventListener("input", e => { if (e.target.id === "note") S.rec.note = e.target.value; });
+document.addEventListener("submit", e => {
+  e.preventDefault(); const v = $("#msg").value.trim(); if (!v) return;
+  const from = { teacher: "Teacher", parent: "Dad", student: "Yusuf" }[S.role];
+  S.thread.push({ from, role: S.role, text: v, ref: null });
+  ["teacher", "parent", "student"].filter(r => r !== S.role).forEach(r => S.unread[r]++);
+  render(); $("#msg").focus();
+});
+render();
+</script>
+
+</html>
